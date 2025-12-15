@@ -1,5 +1,10 @@
-class Settings:
+"""Settings wrapper - kept for backward compatibility, but should use ISettings port."""
+from resources.lib.ports.settings import ISettings
 
+
+class Settings(ISettings):
+    """Settings wrapper that implements ISettings port."""
+    
     AUDIO_FORMATS = {
         "0": {
             "mime_type": "audio/ogg; codecs=\"opus\"",
@@ -20,11 +25,14 @@ class Settings:
         "disabled": "1"
     }
 
-    def __init__(self, addon):
-        self.addon = addon
+    def __init__(self, settings: ISettings):
+        """Initialize with an ISettings implementation."""
+        self._settings = settings
 
-    def get(self, id):
-        return self.addon.getSetting(id)
+    def get(self, setting_id: str) -> str:
+        """Get a setting value by ID."""
+        return self._settings.get(setting_id)
 
-    def set(self, id, value):
-        return self.addon.setSetting(id, value)
+    def set(self, setting_id: str, value: str) -> None:
+        """Set a setting value."""
+        self._settings.set(setting_id, value)

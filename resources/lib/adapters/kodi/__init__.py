@@ -1,0 +1,2 @@
+# KODI platform adapters
+

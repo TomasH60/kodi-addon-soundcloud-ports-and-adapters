@@ -3,7 +3,6 @@ import json
 import re
 import requests
 import urllib.parse
-import xbmc
 
 from resources.lib.models.playlist import Playlist
 from resources.lib.models.track import Track
@@ -11,6 +10,7 @@ from resources.lib.models.selection import Selection
 from resources.lib.models.user import User
 from resources.lib.soundcloud.api_collection import ApiCollection
 from resources.lib.soundcloud.api_interface import ApiInterface
+from resources.lib.ports.logger import ILogger
 
 
 class ApiV2(ApiInterface):
@@ -28,9 +28,10 @@ class ApiV2(ApiInterface):
     }
     thumbnail_size = 500
 
-    def __init__(self, settings, lang, cache):
+    def __init__(self, settings, lang, cache, logger: ILogger):
         self.cache = cache
         self.settings = settings
+        self.logger = logger
         self.api_limit = int(self.settings.get("search.items.size"))
 
         if self.settings.get("apiv2.locale") == self.settings.APIV2_LOCALE["auto"]:
@@ -41,7 +42,7 @@ class ApiV2(ApiInterface):
         # It is possible to set a custom client ID in the settings
         client_id_settings = self.settings.get("apiv2.client_id")
         if client_id_settings:
-            xbmc.log("plugin.audio.soundcloud::ApiV2() Using custom client ID", xbmc.LOGDEBUG)
+            self.logger.debug("ApiV2() Using custom client ID")
             return client_id_settings
 
         # Check if there is a cached client ID
@@ -50,13 +51,13 @@ class ApiV2(ApiInterface):
             self.api_client_id_cache_duration
         )
         if client_id_cached:
-            xbmc.log("plugin.audio.soundcloud::ApiV2() Using cached client ID", xbmc.LOGDEBUG)
+            self.logger.debug("ApiV2() Using cached client ID")
             return client_id_cached
 
         # Extract client ID from website and cache it
         client_id = self.fetch_client_id()
         self.cache.add(self.api_client_id_cache_key, client_id)
-        xbmc.log("plugin.audio.soundcloud::ApiV2() Using new client ID", xbmc.LOGDEBUG)
+        self.logger.debug("ApiV2() Using new client ID")
 
         return client_id
 
@@ -103,17 +104,15 @@ class ApiV2(ApiInterface):
         path = self.api_host + path
         cache_key = hashlib.sha1((path + str(payload)).encode()).hexdigest()
 
-        xbmc.log(
-            "plugin.audio.soundcloud::ApiV2() Calling %s with header %s and payload %s" %
-            (path, str(headers), str(payload)),
-            xbmc.LOGDEBUG
+        self.logger.debug(
+            f"ApiV2() Calling {path} with header {headers} and payload {payload}"
         )
 
         # If caching is active, check for an existing cached file.
         if cache:
             cached_response = self.cache.get(cache_key, cache)
             if cached_response:
-                xbmc.log("plugin.audio.soundcloud::ApiV2() Cache hit", xbmc.LOGDEBUG)
+                self.logger.debug("ApiV2() Cache hit")
                 return json.loads(cached_response)
 
         # Send the request.
@@ -204,9 +203,7 @@ class ApiV2(ApiInterface):
                     collection.items.append(selection)
 
                 else:
-                    xbmc.log("plugin.audio.soundcloud::ApiV2() "
-                             "Could not convert JSON kind to model...",
-                             xbmc.LOGWARNING)
+                    self.logger.warning("ApiV2() Could not convert JSON kind to model...")
 
         elif "tracks" in json_obj:
 
