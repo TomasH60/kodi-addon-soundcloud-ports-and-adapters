@@ -1,4 +1,4 @@
-# SoundCloud Add-on for [Kodi](https://github.com/xbmc/xbmc)
+# Ports-and-adapters refactor of a soundCloud add-on for [Kodi](https://github.com/xbmc/xbmc)
 
 <img align="right" src="https://github.com/xbmc/xbmc/raw/master/addons/webinterface.default/icon-128.png" alt="Kodi logo">
 
@@ -78,3 +78,4 @@ developed by [bromix](https://kodi.tv/addon-author/bromix) and [SLiX](https://gi
 ## Copyright and license
 
 This add-on is licensed under the MIT License - see `LICENSE.txt` for details.
+
